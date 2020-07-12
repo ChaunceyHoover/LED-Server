@@ -19,12 +19,28 @@ LED_STRIP = ws.SK6812W_STRIP
 strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
 strip.begin()
 
+def fill(color):
+    for i in range(LED_COUNT):
+        strip.setPixelColor(i, color)
+
 async def socket(websocket, path):
     while True:
         data = await websocket.recv()
-        data = json.loads(data)
-        col = Color(int(data[1]), int(data[2]), int(data[3]), int(data[4]))
-        strip.setPixelColor(int(data[0]), col)
+        if (data == 'z'): # clear
+            fill(Color(0,0,0,0))
+        elif (data[0] == 'w'): # warm temperature light
+            temp = int(data[1:])
+            fill(Color(temp, 0, 0, temp))
+        elif (data[0] == 'n'): # neutral temperature light
+            temp = int(data[1:])
+            fill(Color(0, 0, 0, temp))
+        elif (data[0] == 'c'): # cool temperature light
+            temp = int(data[1:])
+            fill(Color(0, 0, temp, temp))
+        else:
+            data = json.loads(data)
+            col = Color(int(data[1]), int(data[2]), int(data[3]), int(data[4]))
+            strip.setPixelColor(int(data[0]), col)
 
 def updateLEDs():
     while True:
